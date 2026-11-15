@@ -26,7 +26,8 @@ from bridge.bridge_manager import (
     start_bridge_job,
     dispatch_telemetry_inbox,
     synthesize_outbox_fallback,
-    read_bridge_outbox
+    read_bridge_outbox,
+    wait_for_ai_outbox
 )
 from ai_bridge import get_latest_telemetry_payload
 
@@ -204,19 +205,22 @@ async def execute_full_audit(target_url: str):
             crawl_telemetry.model_dump(),
             security_findings
         )
-        await emit_log("INFO", "🧠 ClawCore Neural Engine: Correlating 4-category bug vectors across UI, Logic, Network, and Security...")
+        await emit_log("INFO", "🧠 ClawCore Neural Engine: Telemetry written to bridge. Waiting for live AI synthesis...")
 
-        # Check for outbox or run deterministic correlation fallback
-        final_bugs = read_bridge_outbox(job_id, target_url)
-        if not final_bugs:
-            final_bugs = synthesize_outbox_fallback(
-                job_id,
-                target_url,
-                telemetry.model_dump(),
-                active_bugs,
-                crawl_telemetry.model_dump(),
-                security_findings
-            )
+        # Step 1: Wait up to 45.0s for Antigravity live AI synthesis before fallback
+        final_bugs, ai_thoughts = await wait_for_ai_outbox(
+            job_id=job_id,
+            target_url=target_url,
+            emit_log=emit_log,
+            timeout=45.0,
+            telemetry_data=telemetry.model_dump(),
+            active_bugs_input=active_bugs,
+            crawl_data=crawl_telemetry.model_dump(),
+            security_data=security_findings
+        )
+
+        if ai_thoughts and "fallback" not in ai_thoughts.lower():
+            await emit_log("INFO", f"🧠 ClawCore Neural Engine [Live CoT]: {ai_thoughts[:250]}...")
 
         # Close audit browser
         await context.close()

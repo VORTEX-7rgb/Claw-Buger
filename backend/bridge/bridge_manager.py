@@ -1,8 +1,10 @@
 import os
 import json
 import uuid
+import time
+import asyncio
 import logging
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any, Optional, Tuple
 from models import BugEvidence
 
 logger = logging.getLogger("clawbugger.bridge_manager")
@@ -13,15 +15,16 @@ OUTBOX_FILE = os.path.join(BRIDGE_DIR, "ai_outbox.json")
 
 def start_bridge_job(target_url: str) -> str:
     """
-    Rule 4: Clears any stale outbox cache and generates a fresh job_id
+    Rule 4: Clears any stale outbox and inbox caches and generates a fresh job_id
     to prevent stale findings across different target URLs.
     """
     job_id = uuid.uuid4().hex[:8]
-    if os.path.exists(OUTBOX_FILE):
-        try:
-            os.remove(OUTBOX_FILE)
-        except Exception as e:
-            logger.debug(f"Failed to clear outbox: {e}")
+    for filepath in [OUTBOX_FILE, INBOX_FILE]:
+        if os.path.exists(filepath):
+            try:
+                os.remove(filepath)
+            except Exception as e:
+                logger.debug(f"Failed to clear {filepath}: {e}")
     return job_id
 
 def dispatch_telemetry_inbox(
@@ -45,6 +48,72 @@ def dispatch_telemetry_inbox(
     }
     with open(INBOX_FILE, "w", encoding="utf-8") as f:
         json.dump(payload, f, indent=2)
+
+async def wait_for_ai_outbox(
+    job_id: str,
+    target_url: str,
+    emit_log=None,
+    timeout: float = 45.0,
+    telemetry_data: Optional[Dict[str, Any]] = None,
+    active_bugs_input: Optional[List[BugEvidence]] = None,
+    crawl_data: Optional[Dict[str, Any]] = None,
+    security_data: Optional[Dict[str, Any]] = None,
+) -> Tuple[List[BugEvidence], Optional[str]]:
+    """
+    Step 1: Polls backend/bridge/ai_outbox.json every 0.5s for up to 25.0s waiting
+    for Antigravity to perform deep neural synthesis and write findings.
+    Emits a WebSocket progress pulse every 2s so the UI remains dynamic.
+    Returns (bugs, ai_thoughts).
+    Falls back to synthesize_outbox_fallback only if the full 25.0s timeout expires.
+    """
+    start_time = time.time()
+    last_pulse_time = start_time
+
+    while (time.time() - start_time) < timeout:
+        await asyncio.sleep(0.5)
+        elapsed = time.time() - start_time
+
+        # Pulse every 2 seconds
+        if elapsed - (last_pulse_time - start_time) >= 2.0:
+            last_pulse_time = time.time()
+            if emit_log:
+                await emit_log("INFO", f"🧠 ClawCore Neural Engine: Deep neural reasoning in progress... ({elapsed:.1f}s)")
+
+        # Check for outbox written by Antigravity
+        if os.path.exists(OUTBOX_FILE):
+            try:
+                with open(OUTBOX_FILE, "r", encoding="utf-8") as f:
+                    content = f.read().strip()
+                if not content:
+                    continue
+                data = json.loads(content)
+                
+                # Verify that outbox matches current job_id or has valid bugs
+                outbox_job = data.get("job_id")
+                bugs_list = data.get("bugs", [])
+                if (outbox_job == job_id or not outbox_job) and len(bugs_list) > 0:
+                    parsed_bugs = [BugEvidence(**b) for b in bugs_list]
+                    ai_thoughts = data.get("ai_thoughts", "Neural cross-vector synthesis confirmed.")
+                    if emit_log:
+                        await emit_log("SUCCESS", f"🧠 ClawCore Neural Engine: Live AI synthesis complete! Generated {len(parsed_bugs)} correlated bug cards in {elapsed:.1f}s.")
+                    return parsed_bugs, ai_thoughts
+            except Exception as e:
+                logger.debug(f"Attempting to read outbox: {e}")
+                continue
+
+    # Timeout reached without Antigravity output -> Local deterministic fallback
+    if emit_log:
+        await emit_log("WARN", f"🧠 ClawCore Neural Engine: AI bridge wait timed out ({timeout:.1f}s). Engaging local deterministic correlation engine...")
+
+    fallback_bugs = synthesize_outbox_fallback(
+        job_id=job_id,
+        target_url=target_url,
+        telemetry_data=telemetry_data or {},
+        active_bugs_input=active_bugs_input or [],
+        crawl_data=crawl_data or {},
+        security_data=security_data or {}
+    )
+    return fallback_bugs, "Deterministic correlation fallback activated."
 
 def synthesize_outbox_fallback(
     job_id: str,
