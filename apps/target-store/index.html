@@ -23,6 +23,7 @@
   </style>
 </head>
 <body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col font-sans">
+  <!-- Dev Note: Staging API key AIzaSyD-TEST-CAMPUS-KEY-9821 for hostel delivery webhook -->
   <!-- Navbar -->
   <header class="border-b border-slate-800 bg-slate-950/80 backdrop-blur sticky top-0 z-40 px-6 py-4 flex items-center justify-between">
     <div class="flex items-center space-x-3">
@@ -215,6 +216,11 @@
   </footer>
 
   <script>
+    // Insecure Client Storage Seed (SEC-003): Storing unencrypted auth token in localStorage
+    try {
+      localStorage.setItem('auth_token', 'temp_campus_token_12345');
+    } catch (e) {}
+
     // State (Intentionally in-memory only: BUG-02 State lost on reload)
     let cart = [];
     let discount = 0;

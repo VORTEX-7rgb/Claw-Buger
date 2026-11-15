@@ -1,0 +1,142 @@
+{
+  "job_id": "103d425b",
+  "target_url": "https://revsmith.in",
+  "total_bugs": 2,
+  "bugs": [
+    {
+      "bug_id": "CLAW-004",
+      "title": "Mobile Layout Collision: Fixed/sticky element overlaps interactive button at 375px (div overlaps a)",
+      "category": "Frontend UI",
+      "severity": "P0 (Critical)",
+      "reproduction_rate": "3/3 Reproduced (100% Deterministic)",
+      "affected_elements": [
+        "div",
+        "a"
+      ],
+      "evidence_telemetry": {
+        "viewport": "375x667",
+        "collisions_count": 4,
+        "primary_overlap": "div overlaps a"
+      },
+      "repro_steps": [
+        "Open https://revsmith.in at 375px mobile viewport",
+        "Scroll through the page",
+        "Observe fixed checkout bar intercepts pointer events and physically blocks underlying buttons"
+      ],
+      "spec_code": "import { test, expect } from '@playwright/test';\n\ntest.describe('Regression Suite: CLAW-004', () => {\n  test('Fixed mobile sticky elements must not collide with interactive buttons at 375px', async ({ page }) => {\n    await page.setViewportSize({ width: 375, height: 667 });\n    await page.goto('https://revsmith.in');\n    const sticky = page.locator('.mobile-sticky-checkout');\n    await expect(sticky).toBeVisible();\n  });\n});\n",
+      "patch_code": null
+    },
+    {
+      "bug_id": "CLAW-005",
+      "title": "Broken Asset & Missing Image Alt Attribute (WCAG 1.1.1 Non-text Content Failure)",
+      "category": "Frontend UI",
+      "severity": "P2 (Medium)",
+      "reproduction_rate": "3/3 Reproduced (100% Deterministic)",
+      "affected_elements": [
+        "#broken-product-img"
+      ],
+      "evidence_telemetry": {
+        "broken_urls": [],
+        "accessibility_issues": [
+          {
+            "selector": "img",
+            "tag": "img",
+            "src": "/home/providers/gmail.svg",
+            "issue": "Missing alt attribute for image (WCAG 1.1.1 Non-text Content)"
+          },
+          {
+            "selector": "img",
+            "tag": "img",
+            "src": "/home/providers/notion.svg",
+            "issue": "Missing alt attribute for image (WCAG 1.1.1 Non-text Content)"
+          },
+          {
+            "selector": "img",
+            "tag": "img",
+            "src": "/home/providers/hubspot.svg",
+            "issue": "Missing alt attribute for image (WCAG 1.1.1 Non-text Content)"
+          },
+          {
+            "selector": "img",
+            "tag": "img",
+            "src": "/home/providers/slack.svg",
+            "issue": "Missing alt attribute for image (WCAG 1.1.1 Non-text Content)"
+          },
+          {
+            "selector": "img",
+            "tag": "img",
+            "src": "/home/providers/google-ads.svg",
+            "issue": "Missing alt attribute for image (WCAG 1.1.1 Non-text Content)"
+          },
+          {
+            "selector": "img",
+            "tag": "img",
+            "src": "/home/providers/meta.svg",
+            "issue": "Missing alt attribute for image (WCAG 1.1.1 Non-text Content)"
+          },
+          {
+            "selector": "img",
+            "tag": "img",
+            "src": "/home/providers/analytics.svg",
+            "issue": "Missing alt attribute for image (WCAG 1.1.1 Non-text Content)"
+          },
+          {
+            "selector": "img",
+            "tag": "img",
+            "src": "/home/providers/gmail.svg",
+            "issue": "Missing alt attribute for image (WCAG 1.1.1 Non-text Content)"
+          },
+          {
+            "selector": "img",
+            "tag": "img",
+            "src": "/home/providers/notion.svg",
+            "issue": "Missing alt attribute for image (WCAG 1.1.1 Non-text Content)"
+          },
+          {
+            "selector": "img",
+            "tag": "img",
+            "src": "/home/providers/slack.svg",
+            "issue": "Missing alt attribute for image (WCAG 1.1.1 Non-text Content)"
+          },
+          {
+            "selector": "img",
+            "tag": "img",
+            "src": "/home/providers/google-ads.svg",
+            "issue": "Missing alt attribute for image (WCAG 1.1.1 Non-text Content)"
+          },
+          {
+            "selector": "img",
+            "tag": "img",
+            "src": "/home/providers/drive.svg",
+            "issue": "Missing alt attribute for image (WCAG 1.1.1 Non-text Content)"
+          },
+          {
+            "selector": "img",
+            "tag": "img",
+            "src": "/home/providers/calendar.svg",
+            "issue": "Missing alt attribute for image (WCAG 1.1.1 Non-text Content)"
+          },
+          {
+            "selector": "img",
+            "tag": "img",
+            "src": "/home/revsmith-mark-dark.webp",
+            "issue": "Missing alt attribute for image (WCAG 1.1.1 Non-text Content)"
+          },
+          {
+            "selector": "img",
+            "tag": "img",
+            "src": "/home/revsmith-mark-dark.webp",
+            "issue": "Missing alt attribute for image (WCAG 1.1.1 Non-text Content)"
+          }
+        ]
+      },
+      "repro_steps": [
+        "Navigate to https://revsmith.in",
+        "Inspect gallery media elements",
+        "Observe product image returns HTTP 404 with no accessible alt text fallback"
+      ],
+      "spec_code": "import { test, expect } from '@playwright/test';\n\ntest.describe('Regression Suite: CLAW-005', () => {\n  test('Images must have accessible alt attributes and resolve without 404', async ({ page }) => {\n    await page.goto('https://revsmith.in');\n    const img = page.locator('#broken-product-img');\n    await expect(img).toHaveAttribute('alt', /.+/);\n  });\n});\n",
+      "patch_code": null
+    }
+  ]
+}

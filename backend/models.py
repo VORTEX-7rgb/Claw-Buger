@@ -38,6 +38,7 @@ class TelemetryPayload(BaseModel):
     layout_collisions: List[LayoutCollision] = Field(default_factory=list)
     accessibility_issues: List[Dict[str, Any]] = Field(default_factory=list)
     aria_snapshot: Optional[str] = None
+    main_headers: Dict[str, str] = Field(default_factory=dict)
 
 class CrawlNode(BaseModel):
     url: str

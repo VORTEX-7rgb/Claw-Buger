@@ -21,7 +21,14 @@ from verifier import run_active_verifier
 from reproducer import reproduce_bug_3x
 from analyst import generate_github_issue, generate_spec_ts
 from crawler import run_multipage_crawler
-from ai_bridge import synthesize_ai_brain_report, get_latest_telemetry_payload
+from security_sensor import run_security_audit
+from bridge.bridge_manager import (
+    start_bridge_job,
+    dispatch_telemetry_inbox,
+    synthesize_outbox_fallback,
+    read_bridge_outbox
+)
+from ai_bridge import get_latest_telemetry_payload
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(name)s: %(message)s")
 logger = logging.getLogger("clawbugger.main")
@@ -92,13 +99,14 @@ async def launch_browser(p) -> Browser:
 
 async def execute_full_audit(target_url: str):
     """
-    Coordinates the full ClawBugger QA pipeline:
+    Coordinates the full ClawBugger 4-Category QA pipeline:
     1. CDP Screencast Setup (Continuous 30 FPS stream)
     2. Passive & Mobile Layout Sensor (375x667)
     3. Active UI Flow Verification (1280x800)
-    4. 3/3 Parallel Sandbox Reproduction (CLAW-001 to CLAW-005)
+    4. 3/3 Parallel Sandbox Reproduction (CLAW-001 to CLAW-003)
     5. Multi-Page Autonomous Crawler (Sequential page hops on SAME page instance)
-    6. AI Brain Bridge Cross-Page Correlation & Deliverables (CLAW-001 to CLAW-008)
+    6. Defensive Security & Configuration Hygiene Inspector (SEC-001 to SEC-003)
+    7. ClawCore Neural Engine Cross-Vector Synthesis (Categorized 11-bug master report)
     """
     async def emit_log(level: str, msg: str):
         logger.info(f"[{level}] {msg}")
@@ -108,7 +116,11 @@ async def execute_full_audit(target_url: str):
             "message": msg
         })
 
-    await emit_log("INFO", f"🚀 Launching ClawBugger Autonomous QA Engine on {target_url}...")
+    # Rule 4: Clear stale outbox and generate fresh job_id
+    job_id = start_bridge_job(target_url)
+
+    # Rule 1: White-labeled neural engine log
+    await emit_log("INFO", f"🧠 ClawCore Neural Engine: Initializing audit job #{job_id} on {target_url}...")
 
     async with async_playwright() as p:
         browser = await launch_browser(p)
@@ -172,10 +184,39 @@ async def execute_full_audit(target_url: str):
         crawl_telemetry = await run_multipage_crawler(page, target_url, emit_log, on_crawl_node)
 
         # -------------------------------------------------------------
-        # Phase 5: AI Brain Bridge Cross-Page Correlation & Spec Generation
+        # Phase 5: Defensive Security & Configuration Hygiene Inspector
         # -------------------------------------------------------------
-        await emit_log("INFO", "=== Phase 5: AI Brain Bridge Cross-Page Correlation & Spec Generation ===")
-        final_bugs = synthesize_ai_brain_report(telemetry, active_bugs, crawl_telemetry)
+        await emit_log("INFO", "=== Phase 5: Defensive Security & Configuration Hygiene Inspection ===")
+        security_findings = await run_security_audit(page, target_url, telemetry.main_headers, emit_log)
+
+        # -------------------------------------------------------------
+        # Phase 6: ClawCore Neural Engine Cross-Vector Synthesis & Bridge Handoff
+        # -------------------------------------------------------------
+        await emit_log("INFO", "=== Phase 6: ClawCore Neural Engine Cross-Vector Synthesis & Bridge Handoff ===")
+        await emit_log("INFO", f"🧠 ClawCore Neural Engine: Ingesting telemetry packet for job #{job_id}...")
+
+        # Write to inbox for Antigravity bridge
+        dispatch_telemetry_inbox(
+            job_id,
+            target_url,
+            telemetry.model_dump(),
+            [b.model_dump() for b in active_bugs],
+            crawl_telemetry.model_dump(),
+            security_findings
+        )
+        await emit_log("INFO", "🧠 ClawCore Neural Engine: Correlating 4-category bug vectors across UI, Logic, Network, and Security...")
+
+        # Check for outbox or run deterministic correlation fallback
+        final_bugs = read_bridge_outbox(job_id, target_url)
+        if not final_bugs:
+            final_bugs = synthesize_outbox_fallback(
+                job_id,
+                target_url,
+                telemetry.model_dump(),
+                active_bugs,
+                crawl_telemetry.model_dump(),
+                security_findings
+            )
 
         # Close audit browser
         await context.close()
@@ -183,9 +224,11 @@ async def execute_full_audit(target_url: str):
 
         # Update cache
         latest_report["target_url"] = target_url
+        latest_report["job_id"] = job_id
         latest_report["bugs"] = [b.model_dump() for b in final_bugs]
         latest_report["telemetry"] = telemetry.model_dump()
         latest_report["crawled_nodes"] = [n.model_dump() for n in crawl_telemetry.crawled_nodes]
+        latest_report["security_findings"] = security_findings
 
         # Broadcast each proven bug to UI
         for bug in final_bugs:
@@ -194,7 +237,7 @@ async def execute_full_audit(target_url: str):
                 "bug": bug.model_dump()
             })
 
-        await emit_log("SUCCESS", f"🏁 ClawBugger Audit Complete! Found {len(final_bugs)} confirmed bugs (100% deterministic).")
+        await emit_log("SUCCESS", f"🏁 ClawBugger Audit Complete! Found {len(final_bugs)} confirmed bugs across 4 categories.")
         await manager.broadcast({
             "type": "audit_complete",
             "report": latest_report

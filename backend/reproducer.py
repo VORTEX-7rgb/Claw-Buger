@@ -25,8 +25,8 @@ async def reproduce_bug_3x(
             # Spawn isolated context with clean storage and cookies
             context = await browser.new_context(viewport={"width": 1280, "height": 800})
             page = await context.new_page()
-            await page.goto(target_url, wait_until="load", timeout=12000)
-            await page.wait_for_timeout(300)
+            await page.goto(target_url, wait_until="domcontentloaded", timeout=6000)
+            await page.wait_for_timeout(200)
 
             reproduced = False
 

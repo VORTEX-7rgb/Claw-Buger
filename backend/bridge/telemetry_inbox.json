@@ -1,0 +1,244 @@
+{
+  "job_id": "103d425b",
+  "target_url": "https://revsmith.in",
+  "passive_telemetry": {
+    "url": "https://revsmith.in",
+    "viewport": {
+      "width": 375,
+      "height": 667
+    },
+    "horizontal_overflow": false,
+    "scroll_width": 375,
+    "window_width": 375,
+    "network_errors": [],
+    "console_errors": [],
+    "layout_collisions": [
+      {
+        "floating_tag": "div",
+        "floating_selector": "div",
+        "blocked_tag": "a",
+        "blocked_selector": "a",
+        "overlap_w": 96.0,
+        "overlap_h": 24.0,
+        "overlap_area": 2304.0
+      },
+      {
+        "floating_tag": "div",
+        "floating_selector": "div",
+        "blocked_tag": "button",
+        "blocked_selector": "button.scp0",
+        "overlap_w": 132.0,
+        "overlap_h": 34.0,
+        "overlap_area": 4480.0
+      },
+      {
+        "floating_tag": "header",
+        "floating_selector": "header",
+        "blocked_tag": "button",
+        "blocked_selector": "button",
+        "overlap_w": 131.0,
+        "overlap_h": 6.0,
+        "overlap_area": 725.0
+      },
+      {
+        "floating_tag": "header",
+        "floating_selector": "header",
+        "blocked_tag": "input",
+        "blocked_selector": "input",
+        "overlap_w": 283.0,
+        "overlap_h": 43.0,
+        "overlap_area": 12169.0
+      }
+    ],
+    "accessibility_issues": [
+      {
+        "selector": "img",
+        "tag": "img",
+        "src": "/home/providers/gmail.svg",
+        "issue": "Missing alt attribute for image (WCAG 1.1.1 Non-text Content)"
+      },
+      {
+        "selector": "img",
+        "tag": "img",
+        "src": "/home/providers/notion.svg",
+        "issue": "Missing alt attribute for image (WCAG 1.1.1 Non-text Content)"
+      },
+      {
+        "selector": "img",
+        "tag": "img",
+        "src": "/home/providers/hubspot.svg",
+        "issue": "Missing alt attribute for image (WCAG 1.1.1 Non-text Content)"
+      },
+      {
+        "selector": "img",
+        "tag": "img",
+        "src": "/home/providers/slack.svg",
+        "issue": "Missing alt attribute for image (WCAG 1.1.1 Non-text Content)"
+      },
+      {
+        "selector": "img",
+        "tag": "img",
+        "src": "/home/providers/google-ads.svg",
+        "issue": "Missing alt attribute for image (WCAG 1.1.1 Non-text Content)"
+      },
+      {
+        "selector": "img",
+        "tag": "img",
+        "src": "/home/providers/meta.svg",
+        "issue": "Missing alt attribute for image (WCAG 1.1.1 Non-text Content)"
+      },
+      {
+        "selector": "img",
+        "tag": "img",
+        "src": "/home/providers/analytics.svg",
+        "issue": "Missing alt attribute for image (WCAG 1.1.1 Non-text Content)"
+      },
+      {
+        "selector": "img",
+        "tag": "img",
+        "src": "/home/providers/gmail.svg",
+        "issue": "Missing alt attribute for image (WCAG 1.1.1 Non-text Content)"
+      },
+      {
+        "selector": "img",
+        "tag": "img",
+        "src": "/home/providers/notion.svg",
+        "issue": "Missing alt attribute for image (WCAG 1.1.1 Non-text Content)"
+      },
+      {
+        "selector": "img",
+        "tag": "img",
+        "src": "/home/providers/slack.svg",
+        "issue": "Missing alt attribute for image (WCAG 1.1.1 Non-text Content)"
+      },
+      {
+        "selector": "img",
+        "tag": "img",
+        "src": "/home/providers/google-ads.svg",
+        "issue": "Missing alt attribute for image (WCAG 1.1.1 Non-text Content)"
+      },
+      {
+        "selector": "img",
+        "tag": "img",
+        "src": "/home/providers/drive.svg",
+        "issue": "Missing alt attribute for image (WCAG 1.1.1 Non-text Content)"
+      },
+      {
+        "selector": "img",
+        "tag": "img",
+        "src": "/home/providers/calendar.svg",
+        "issue": "Missing alt attribute for image (WCAG 1.1.1 Non-text Content)"
+      },
+      {
+        "selector": "img",
+        "tag": "img",
+        "src": "/home/revsmith-mark-dark.webp",
+        "issue": "Missing alt attribute for image (WCAG 1.1.1 Non-text Content)"
+      },
+      {
+        "selector": "img",
+        "tag": "img",
+        "src": "/home/revsmith-mark-dark.webp",
+        "issue": "Missing alt attribute for image (WCAG 1.1.1 Non-text Content)"
+      }
+    ],
+    "aria_snapshot": "- link \"Skip to content\":\n  - /url: \"#main-content\"\n- banner:\n  - navigation:\n    - link \"Revsmith home\":\n      - /url: /\n      - img \"Revsmith\"\n    - link \"Sign in\":\n      - /url: /auth\n    - button \"\ue067 Book a demo\"\n- main:\n  - region \"The AI OS for marketing agencies.\":\n    - text: Built for marketing companies Now onboarding agencies\n    - heading \"The AI OS for marketing agencies.\" [level=1]\n    - paragraph: Bring your clients, brands, teams, and AI agents into one intelligent workspace. From strategy and creation to execution, reporting, and growth.\n    - button \"\ue067 Book a demo\"\n    - link \"Get started\":\n      - /url: \"#access\"\n    - img \"Revsmith\"\n    - text: \ue0f8 Home \ue1a3 Clients \ue234 Campaigns \ue0d0 Content \ue429 Workflows \ue1ba Agents \ue2a2 Reports \ue382 Connections Good morning, Maya \ud83d\udc4b Here\u2019s what\u2019s happening across your clients \ue067 Last 30 days \ue071 Total Clients \ue1a3 24 + 2 this month Active Campaigns \ue2a2 18 \u2191 28% Revenue Influence \ue0b5 $284K \u2191 32% Tasks Automated \ue1b3 1,420 \u2191 5x Active workflows \ue1a3 Generate weekly client report Northstar Labs Running 2 min ago \ue067 Create & schedule LinkedIn posts Studio Bloom Queued 12 min ago \ue2a4 Analyze campaign performance Orbit Finance Completed 1 hour ago \ue112 Follow up with warm leads Nova Brands Running 3 min ago AI agents \u2022 4 active \ue416 Content Agent Create, optimize, schedule content \ue190 Growth Agent Find opportunities & suggest actions \ue06f Client Analyst Analyze performance & insights \ue155 Outreach Agent Draft and send personalized outreach Gmail Client communication Notion Docs & knowledge HubSpot CRM & deals Slack Team collaboration \ue0b1 Client knowledge Unified across all tools \ue128 Workflows Automate end-to-end tasks \ue2a2 Analytics Turn data into growth\n  - region \"How Revsmith works\":\n    - text: Start with your company. Revsmith reads how you work and builds your Company Brain.\n    - img\n    - img \"Revsmith\"\n    - text: Brightline Company Brain 0% Scroll \u2193\n  - region \"The problem\":\n    - group \"Before and after\":\n      - button \"Before Revsmith\"\n      - button \"With Revsmith\"\n    - heading \"Fifteen tools. No memory.\" [level=2]\n    - paragraph: This is what one client\u2019s week looks like today.\n    - heading \"Now it works as one.\" [level=2]\n    - paragraph: One workspace that knows every client, and does the work with you.\n    - text: \"Inbox 7,180 Leo \u00b7 Re: Re: Fwd: Northstar logins? Studio Bloom \u00b7 banner feedback (3) Northstar \u00b7 quick question Finance \u00b7 invoice overdue Kickoff notes \u2014 Northstar \u2022 revisions: 2? 3? (check w/ Maya) \u2022 Q4 budget options \u2014 someone \u2022 logins: Leo chasing #northstar\"\n    - strong: Priya\n    - text: which banner did they approve??\n    - strong: Sam\n    - text: v3 I think\n    - strong: Priya\n    - text: \"the one in Drive or the email one PDF SOW_Northstar_signed.pdf Revisions: 2 per creative Northstar \u2014 Search Cost per lead \u00b7 6 weeks Deliverables_tracker_FINAL.xlsx Creative Owner Status Spring hero Sam v3?? Landing page Priya waiting Q4 options \u2014 \u2014 M Maya \u00b7 Accounts Did we promise 2 or 3 revisions? L Leo \u00b7 Media Where are Northstar\u2019s ad logins? P Priya \u00b7 Content Which banner did they approve? S Sam \u00b7 Design Is this in scope? A Alex \u00b7 Founder Which client needs me today? N Client Brain Northstar Labs 25% Brand voice Goals Email Gmail 142 threads \u00b7 matched to clients Synced Team chat Slack #northstar \u00b7 #bloom Synced Files Drive \u00b7 Notion Brand files \u00b7 signed SOWs Synced Ad platforms Google Ads \u00b7 Meta 5 accounts mapped Synced Analytics Google Analytics 2 properties \u00b7 goals linked Synced CRM HubSpot Pipeline \u00b7 2 renewals Synced Calendar Calendar Meetings and deadlines Synced Tasks Asana \u00b7 ClickUp 2 projects \u00b7 18 tasks Synced Account Director BRIGHTLINE Account Operations Chief of Staff Ready \u2303 Ask Account Director\u2026 +\"\n  - text: \ue429 Workflow builder\n  - heading \"If you do it twice, make it a workflow.\" [level=2]\n  - paragraph: Describe the task in plain English. Revsmith picks the apps and AI models, uses each client\u2019s brain, and waits for your yes.\n  - text: Ad generation Studio Bloom \u00b7 from the Client Brain Completed \ue416 Make 3 spring ads for Studio Bloom from their brand, turn them into a 15s video, get Ana\u2019s approval, then launch on Meta. Generated \u2713 \ue3c9 Read Client Brain Context 01 Calm, warm Spring palette No claims Done 0.7s Write 3 ad scripts AI \u00b7 Claude 02 Output \u201cStart soft. Gentle enough for every day.\u201d + 2 more scripts Done 0.5s \ue0f9 Generate visuals AI \u00b7 Image 03 studio bloom Start soft. Shop spring Done 1.2s \ue29a Animate 15s cut AI \u00b7 Video 04 studio bloom Start soft. Shop spring \u25b6 0:15 Done 1.0s \ue240 Ana approves Approval 05 \u2713 Approved by Ana Done 0.8s Launch ad set Action \u00b7 Meta 06 \u2713 Live \u00b7 $40 a day Done 0.6s Revsmith built\n  - strong: 6 steps\n  - text: \"from your description Approved \u2713 \u00b7 turned on Run #284 \u00b7 Studio Bloom \u00b7 4 min \u00b7 AI cost $0.42 \ue1fe Client-facing steps wait for a person \ue1ba AI teammates\"\n  - heading \"A sharp specialist on every account. Every morning.\" [level=2]\n  - paragraph: Each teammate has a role, a client, the right brain and clear permissions. They find the cause, draft the work, and ask before anything leaves.\n  - button \"\ue2a4 Performance Analyst\"\n  - button \"\ue154 SEO Strategist\"\n  - button \"\ue1dc Creative Lead\"\n  - button \"\ue234 Social Manager\"\n  - button \"\ue112 Lifecycle Specialist\"\n  - text: \ue2a4 Performance Analyst Working on Northstar Labs \u00b7 Media Buyer \ue10e Only Northstar Labs\u2019s brain RA Rahul \u00b7 Media buyer Why did Northstar\u2019s cost per lead go up last week? Reading Northstar\u2019s records\u2026 Ask the Performance Analyst\u2026 \ue04e \ue104 Dashboards\n  - heading \"Build a screen once. Use it on every client.\" [level=2]\n  - paragraph: Every month, Sarah opens Google Ads, Meta and a spreadsheet for each of her 12 clients to build their reports. With Dashboards, she builds one reporting screen. It appears on all 12, each with its own live numbers and a button that drafts the report.\n  - text: Monthly reporting Client page \ue2a4 Metric Cost per lead $58.50 Target under $50 \ue2a4 Metric Spend this month $11,900 \ue2a4 Chart\n  - img\n  - text: Leads vs target \ue1d8 Records Cost per lead above target, 5 days \ue123 Button Draft monthly report Waits for Sarah\u2019s approval. \ue1ba Agent Ask about Northstar Works only on Northstar\n  - button \"Northstar Labs Cost per lead $58.50\"\n  - button \"Kite Fitness Cost per lead $31.10\"\n  - button \"Studio Bloom Not shown \u00b7 creative only\"\n  - text: Integrations\n  - heading \"Plug into 1,000+ apps.\" [level=2]\n  - paragraph: Every tool your team already uses, connected once and matched to the right client.\n  - img \"Meta Ads\"\n  - img \"Gmail\"\n  - img \"HubSpot\"\n  - img \"Asana\"\n  - img \"Facebook\"\n  - img \"TikTok\"\n  - img \"Pinterest\"\n  - img \"Threads\"\n  - img \"Yelp\"\n  - img \"Google Maps\"\n  - img \"Tripadvisor\"\n  - img \"Messenger\"\n  - img \"Substack\"\n  - img \"Search Console\"\n  - img \"Hotjar\"\n  - img \"PostHog\"\n  - img \"Datadog\"\n  - img \"Google Cloud\"\n  - img \"Zoho\"\n  - img \"Zendesk\"\n  - img \"Brevo\"\n  - img \"Resend\"\n  - img \"PayPal\"\n  - img \"Klarna\"\n  - img \"Framer\"\n  - img \"Contentful\"\n  - img \"Dribbble\"\n  - img \"Unsplash\"\n  - img \"Giphy\"\n  - img \"Linear\"\n  - img \"Airtable\"\n  - img \"Toggl\"\n  - img \"Box\"\n  - img \"Zoom\"\n  - img \"Xero\"\n  - img \"IFTTT\"\n  - img \"Anthropic\"\n  - img \"Hootsuite\"\n  - img \"Medium\"\n  - img \"Product Hunt\"\n  - img \"Looker Studio\"\n  - img \"Sketch\"\n  - img \"Basecamp\"\n  - img \"HubSpot\"\n  - img \"Threads\"\n  - img \"Squarespace\"\n  - img \"Unsplash\"\n  - img \"Hootsuite\"\n  - img \"Google Calendar\"\n  - img \"Snowflake\"\n  - img \"Shopify\"\n  - img \"Google Docs\"\n  - img \"Claude\"\n  - img \"Semrush\"\n  - img \"Zendesk\"\n  - img \"Airtable\"\n  - img \"Zoom\"\n  - img \"Quora\"\n  - img \"Twitch\"\n  - img \"Wix\"\n  - img \"Pexels\"\n  - img \"Facebook\"\n  - img \"WooCommerce\"\n  - img \"Contentful\"\n  - img \"Anthropic\"\n  - img \"Google Analytics\"\n  - img \"Yoast\"\n  - img \"Calendly\"\n  - img \"Webex\"\n  - img \"Spotify\"\n  - text: Drag to spin \u00b7 click an app to connect\n  - img \"Revsmith\"\n  - text: Now onboarding agencies\n  - heading \"Make your marketing company AI-native.\" [level=2]\n  - paragraph: Your competitors are already moving to AI. Get your agency on RevSmith before they do.\n  - textbox \"Work email\":\n    - /placeholder: Your work email\n  - button \"Get started\"\n- contentinfo:\n  - img \"Revsmith\"\n  - paragraph: The AI OS for marketing companies.\n  - link \"RevSmith on LinkedIn\":\n    - /url: https://www.linkedin.com/company/revsmith-ai/\n    - text: \ue10a\n  - text: Product\n  - link \"Company Brain\":\n    - /url: /#how\n  - link \"Client Brain\":\n    - /url: /#how\n  - link \"Workflows\":\n    - /url: /#workflows\n  - link \"Agents\":\n    - /url: /#teammates\n  - link \"Integrations\":\n    - /url: /#apps\n  - text: Resources\n  - link \"Resources\":\n    - /url: /resources\n  - link \"AI operating system guide\":\n    - /url: /ai-operating-system-for-agencies\n  - link \"AI automation\":\n    - /url: /ai-for-marketing-agencies\n  - link \"Agency operations\":\n    - /url: /guides/agency-operations\n  - link \"Agency profitability\":\n    - /url: /guides/agency-profitability\n  - link \"Best AI tools\":\n    - /url: /best-ai-tools-for-marketing-agencies\n  - link \"Book a demo\":\n    - /url: /demo\n  - text: Company\n  - link \"About\":\n    - /url: /company\n  - link \"Careers\":\n    - /url: mailto:founder@revsmith.in\n  - link \"Contact\":\n    - /url: mailto:founder@revsmith.in\n  - text: \u00a9 2026 Revsmith. All rights reserved.\n  - link \"Founder on LinkedIn\":\n    - /url: https://www.linkedin.com/in/namanjaiswalofficial\n  - text: Made for marketing companies.",
+    "main_headers": {
+      "access-control-allow-origin": "*",
+      "age": "79011",
+      "alt-svc": "h3=\":443\"; ma=86400",
+      "cache-control": "public, max-age=0, must-revalidate",
+      "cf-cache-status": "DYNAMIC",
+      "cf-ray": "a5ad303b8cd1fb98-MRS",
+      "content-disposition": "inline",
+      "content-encoding": "zstd",
+      "content-security-policy": "default-src 'self'; script-src 'self' https://www.googletagmanager.com 'sha256-eLJ66tXADyBASBa46uCXmGvvb/YPH3SySeMvtOtyOyE='; connect-src 'self' https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://*.google-analytics.com https://*.googletagmanager.com; font-src 'self' data:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-src https://cal.com https://*.cal.com; frame-ancestors 'none'; upgrade-insecure-requests",
+      "content-type": "text/html; charset=utf-8",
+      "cross-origin-opener-policy": "same-origin",
+      "date": "Sun, 15 Nov 2026 09:21:54 GMT",
+      "last-modified": "Sat, 14 Nov 2026 11:25:02 GMT",
+      "nel": "{\"report_to\":\"cf-nel\",\"success_fraction\":0.0,\"max_age\":604800}",
+      "permissions-policy": "camera=(), microphone=(), geolocation=()",
+      "referrer-policy": "strict-origin-when-cross-origin",
+      "report-to": "{\"group\":\"cf-nel\",\"max_age\":604800,\"endpoints\":[{\"url\":\"https://a.nel.cloudflare.com/report/v4?s=rWOu%2BLFoTzX2icWK3BURFoGoFbsQb7d8S4H8rKEFOr0VQFpMXktbHrfpLf6o%2FSvwm5BpHgvS0934dqa2dUcXEt7xWbro%2B0jTe7Pg1beVFi4WLE5um02lIe83ljlQuw%3D%3D\"}]}",
+      "server": "cloudflare",
+      "strict-transport-security": "max-age=63072000; includeSubDomains",
+      "vary": "accept-encoding",
+      "x-content-type-options": "nosniff",
+      "x-frame-options": "DENY",
+      "x-vercel-cache": "HIT",
+      "x-vercel-id": "cdg1::gpth2-1794734514552-4ef520ac6e43"
+    }
+  },
+  "active_verifier_bugs": [],
+  "multipage_crawler": {
+    "entry_url": "https://revsmith.in",
+    "total_routes_discovered": 12,
+    "crawled_nodes": [
+      {
+        "url": "https://revsmith.in",
+        "path": "/",
+        "status_code": 200,
+        "status": "healthy",
+        "title": "RevSmith \u00b7 The AI operating system for marketing agencies",
+        "has_meta_desc": true,
+        "issues": [],
+        "on_click_errors": [],
+        "drawer_trap_detected": false
+      },
+      {
+        "url": "https://revsmith.in/",
+        "path": "/",
+        "status_code": 200,
+        "status": "healthy",
+        "title": "RevSmith \u00b7 The AI operating system for marketing agencies",
+        "has_meta_desc": true,
+        "issues": [],
+        "on_click_errors": [],
+        "drawer_trap_detected": false
+      },
+      {
+        "url": "https://revsmith.in/guides/agency-operations",
+        "path": "/guides/agency-operations",
+        "status_code": 200,
+        "status": "healthy",
+        "title": "Marketing Agency Operations: Systems and SOPs \u00b7 RevSmith",
+        "has_meta_desc": true,
+        "issues": [],
+        "on_click_errors": [],
+        "drawer_trap_detected": false
+      },
+      {
+        "url": "https://revsmith.in/guides/agency-profitability",
+        "path": "/guides/agency-profitability",
+        "status_code": 200,
+        "status": "healthy",
+        "title": "Marketing Agency Profitability: The Margin Levers \u00b7 RevSmith",
+        "has_meta_desc": true,
+        "issues": [],
+        "on_click_errors": [],
+        "drawer_trap_detected": false
+      },
+      {
+        "url": "https://revsmith.in/ai-operating-system-for-agencies",
+        "path": "/ai-operating-system-for-agencies",
+        "status_code": 200,
+        "status": "healthy",
+        "title": "What is an AI operating system for marketing agencies? \u00b7 RevSmith",
+        "has_meta_desc": true,
+        "issues": [],
+        "on_click_errors": [],
+        "drawer_trap_detected": false
+      }
+    ],
+    "dead_links": [],
+    "console_crashes": [],
+    "mobile_traps": []
+  },
+  "security_findings": {
+    "missing_headers": [],
+    "leaked_secrets": [],
+    "insecure_storage": [],
+    "mixed_content": []
+  }
+}

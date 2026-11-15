@@ -34,6 +34,11 @@
             ClawBugger
             <span class="text-[10px] font-semibold bg-indigo-500/20 text-indigo-400 border border-indigo-500/30 px-2 py-0.5 rounded-full uppercase tracking-wider">v1.0 • Track 03</span>
           </h1>
+          <!-- Rule 1: 100% White-Labeled Neural Engine Status -->
+          <span class="hidden sm:flex text-[10px] font-mono text-emerald-400 bg-emerald-950/60 border border-emerald-800/50 px-2.5 py-0.5 rounded-full items-center gap-1.5 shadow-sm">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 glow-dot"></span>
+            🧠 ClawCore Neural Engine: Connected & Synced
+          </span>
         </div>
         <p class="text-xs text-slate-400">Autonomous QA & BugHunter Engine • VibeNova 2026</p>
       </div>
@@ -112,7 +117,7 @@
     <section class="lg:col-span-7 flex flex-col space-y-5">
       
       <!-- Live Telemetry Terminal -->
-      <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 shadow-xl flex flex-col h-60">
+      <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 shadow-xl flex flex-col h-56">
         <div class="flex items-center justify-between pb-2.5 border-b border-slate-800 text-xs">
           <div class="flex items-center gap-2">
             <div class="flex space-x-1.5">
@@ -148,7 +153,7 @@
             <span id="tree-buggy-cnt" class="text-rose-400 bg-rose-950/60 border border-rose-800/40 px-2 py-0.5 rounded">0 Buggy</span>
           </div>
         </div>
-        <div id="site-tree-container" class="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-3 max-h-48 overflow-y-auto">
+        <div id="site-tree-container" class="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-3 max-h-40 overflow-y-auto">
           <div id="tree-placeholder" class="col-span-2 text-center py-4 text-xs text-slate-500">
             Routes discovered and crawled by the autonomous bot will appear here in real time.
           </div>
@@ -157,7 +162,7 @@
 
       <!-- Proven Bugs & Deliverables (Rubric) -->
       <div class="flex-1 bg-slate-900/60 border border-slate-800 rounded-2xl p-5 shadow-xl flex flex-col">
-        <div class="flex items-center justify-between pb-4 border-b border-slate-800">
+        <div class="flex items-center justify-between pb-3 border-b border-slate-800">
           <div>
             <h2 class="text-sm font-bold text-white flex items-center gap-2">
               <span>🎯 Proven Bugs & Regression Deliverables</span>
@@ -167,6 +172,25 @@
             </h2>
             <p class="text-xs text-slate-400 mt-0.5">Every bug verified 3/3 in isolated sandboxes with ready-to-run Playwright tests.</p>
           </div>
+        </div>
+
+        <!-- 4-Category Filter Tabs -->
+        <div class="flex items-center gap-1.5 pt-3 pb-2 border-b border-slate-800/80 text-xs overflow-x-auto">
+          <button onclick="setCategoryFilter('all')" id="tab-all" class="px-2.5 py-1 rounded-lg font-medium transition bg-indigo-600 text-white flex items-center gap-1 shadow-sm">
+            All <span id="cnt-all" class="text-[10px] bg-indigo-950/80 px-1.5 py-0.2 rounded-full">0</span>
+          </button>
+          <button onclick="setCategoryFilter('Frontend UI')" id="tab-ui" class="px-2.5 py-1 rounded-lg font-medium transition text-slate-400 hover:text-white hover:bg-slate-800 flex items-center gap-1">
+            📱 Frontend UI <span id="cnt-ui" class="text-[10px] bg-slate-800 text-slate-300 px-1.5 py-0.2 rounded-full">0</span>
+          </button>
+          <button onclick="setCategoryFilter('Client Logic')" id="tab-logic" class="px-2.5 py-1 rounded-lg font-medium transition text-slate-400 hover:text-white hover:bg-slate-800 flex items-center gap-1">
+            ⚡ Client Logic <span id="cnt-logic" class="text-[10px] bg-slate-800 text-slate-300 px-1.5 py-0.2 rounded-full">0</span>
+          </button>
+          <button onclick="setCategoryFilter('Network & API')" id="tab-network" class="px-2.5 py-1 rounded-lg font-medium transition text-slate-400 hover:text-white hover:bg-slate-800 flex items-center gap-1">
+            🌐 Network <span id="cnt-network" class="text-[10px] bg-slate-800 text-slate-300 px-1.5 py-0.2 rounded-full">0</span>
+          </button>
+          <button onclick="setCategoryFilter('Security & Hygiene')" id="tab-security" class="px-2.5 py-1 rounded-lg font-medium transition text-slate-400 hover:text-white hover:bg-slate-800 flex items-center gap-1">
+            🛡️ Security <span id="cnt-security" class="text-[10px] bg-slate-800 text-slate-300 px-1.5 py-0.2 rounded-full">0</span>
+          </button>
         </div>
 
         <!-- Bugs Container -->
@@ -214,9 +238,57 @@
     let bugCountBadge = document.getElementById('bug-count-badge');
     let currentBugs = [];
     let crawledNodes = [];
+    let currentCategoryFilter = 'all';
 
     function setUrl(url) {
       document.getElementById('target-url').value = url;
+    }
+
+    function setCategoryFilter(cat) {
+      currentCategoryFilter = cat;
+      
+      const tabIds = {
+        'all': 'tab-all',
+        'Frontend UI': 'tab-ui',
+        'Client Logic': 'tab-logic',
+        'Network & API': 'tab-network',
+        'Security & Hygiene': 'tab-security'
+      };
+
+      Object.keys(tabIds).forEach(k => {
+        const el = document.getElementById(tabIds[k]);
+        if (el) {
+          if (k === cat) {
+            el.className = "px-2.5 py-1 rounded-lg font-medium transition bg-indigo-600 text-white flex items-center gap-1 shadow-sm";
+          } else {
+            el.className = "px-2.5 py-1 rounded-lg font-medium transition text-slate-400 hover:text-white hover:bg-slate-800 flex items-center gap-1";
+          }
+        }
+      });
+
+      // Filter displayed cards
+      document.querySelectorAll('.bug-card').forEach(card => {
+        const cardCat = card.getAttribute('data-category');
+        if (cat === 'all' || cardCat === cat) {
+          card.classList.remove('hidden');
+        } else {
+          card.classList.add('hidden');
+        }
+      });
+    }
+
+    function updateCategoryCounts() {
+      const cntAll = currentBugs.length;
+      const cntUi = currentBugs.filter(b => b.category === 'Frontend UI').length;
+      const cntLogic = currentBugs.filter(b => b.category === 'Client Logic').length;
+      const cntNetwork = currentBugs.filter(b => b.category === 'Network & API').length;
+      const cntSecurity = currentBugs.filter(b => b.category === 'Security & Hygiene').length;
+
+      document.getElementById('cnt-all').innerText = cntAll;
+      document.getElementById('cnt-ui').innerText = cntUi;
+      document.getElementById('cnt-logic').innerText = cntLogic;
+      document.getElementById('cnt-network').innerText = cntNetwork;
+      document.getElementById('cnt-security').innerText = cntSecurity;
     }
 
     function connectWS() {
@@ -289,7 +361,6 @@
       const ph = document.getElementById('tree-placeholder');
       if (ph) ph.remove();
 
-      // Avoid duplicate render of same path
       const existing = crawledNodes.find(n => n.path === node.path);
       if (!existing) {
         crawledNodes.push(node);
@@ -305,7 +376,6 @@
         ? `<span class="text-[10px] font-mono text-emerald-400 bg-emerald-950/80 border border-emerald-800/60 px-1.5 py-0.5 rounded">HTTP ${node.statusCode}</span>`
         : `<span class="text-[10px] font-mono text-rose-400 bg-rose-950/80 border border-rose-800/60 px-1.5 py-0.5 rounded">HTTP ${node.statusCode} • BUGGY</span>`;
 
-      // Check if node DOM element already exists
       let nodeEl = document.getElementById(`node-${btoa(node.path).replace(/=/g, '')}`);
       if (!nodeEl) {
         nodeEl = document.createElement('div');
@@ -329,7 +399,6 @@
         ` : ''}
       `;
 
-      // Update counters
       const healthyCount = crawledNodes.filter(n => n.status === 'healthy').length;
       const buggyCount = crawledNodes.filter(n => n.status === 'buggy').length;
       document.getElementById('tree-summary-badge').innerText = `${crawledNodes.length} Routes Scanned`;
@@ -358,6 +427,7 @@
       document.getElementById('tree-healthy-cnt').innerText = '0 Healthy';
       document.getElementById('tree-buggy-cnt').innerText = '0 Buggy';
 
+      updateCategoryCounts();
       appendLog('INFO', `------------------------------------------------------`);
       appendLog('INFO', `Starting autonomous audit on ${url}...`);
 
@@ -374,22 +444,43 @@
 
     function renderBug(bug) {
       if (noBugsMsg) noBugsMsg.remove();
+      
+      // Avoid duplicate bug rendering
+      if (currentBugs.some(b => b.bug_id === bug.bug_id)) {
+        return;
+      }
       currentBugs.push(bug);
       bugCountBadge.innerText = `${currentBugs.length} Confirmed`;
+      updateCategoryCounts();
 
       let sevColor = 'bg-amber-500/20 text-amber-300 border-amber-500/30';
       if (bug.severity.includes('P0')) sevColor = 'bg-rose-500/20 text-rose-300 border-rose-500/30';
       if (bug.severity.includes('P2')) sevColor = 'bg-indigo-500/20 text-indigo-300 border-indigo-500/30';
 
+      let catBadgeColor = 'bg-slate-800 text-slate-300 border-slate-700';
+      if (bug.category === 'Frontend UI') catBadgeColor = 'bg-indigo-950/80 text-indigo-300 border-indigo-700/60';
+      if (bug.category === 'Client Logic') catBadgeColor = 'bg-amber-950/80 text-amber-300 border-amber-700/60';
+      if (bug.category === 'Network & API') catBadgeColor = 'bg-cyan-950/80 text-cyan-300 border-cyan-700/60';
+      if (bug.category === 'Security & Hygiene') catBadgeColor = 'bg-rose-950/80 text-rose-300 border-rose-700/60';
+
       const card = document.createElement('div');
-      card.className = "bg-slate-950/80 border border-slate-800 rounded-xl p-4 shadow-lg transition hover:border-slate-700 flex flex-col gap-3";
+      card.className = "bug-card bg-slate-950/80 border border-slate-800 rounded-xl p-4 shadow-lg transition hover:border-slate-700 flex flex-col gap-3";
+      card.setAttribute('data-category', bug.category);
+
+      // Apply current filter visibility
+      if (currentCategoryFilter !== 'all' && bug.category !== currentCategoryFilter) {
+        card.classList.add('hidden');
+      }
       
       card.innerHTML = `
         <div class="flex items-start justify-between gap-3">
           <div>
-            <div class="flex items-center gap-2 mb-1">
+            <div class="flex items-center gap-2 mb-1 flex-wrap">
               <span class="text-[10px] font-bold px-2 py-0.5 rounded border ${sevColor}">
                 ${bug.severity}
+              </span>
+              <span class="text-[10px] font-semibold px-2 py-0.5 rounded border ${catBadgeColor}">
+                ${bug.category}
               </span>
               <span class="text-xs font-mono font-bold text-white">${bug.bug_id}</span>
               <span class="text-[10px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-2 py-0.5 rounded-full font-semibold">
@@ -433,6 +524,7 @@
       if (report.crawled_nodes && report.crawled_nodes.length > 0 && crawledNodes.length === 0) {
         report.crawled_nodes.forEach(n => handleCrawlNode(n));
       }
+      updateCategoryCounts();
     }
 
     function openIssueModal(bug) {

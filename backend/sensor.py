@@ -86,8 +86,9 @@ async def run_passive_sensor(
     if log_emitter:
         await log_emitter("INFO", f"🌐 Navigating to {target_url}...")
 
-    await page.goto(target_url, wait_until="load", timeout=15000)
-    await page.wait_for_timeout(1000)  # Allow initial render / async scripts to settle
+    main_res = await page.goto(target_url, wait_until="domcontentloaded", timeout=8000)
+    main_headers = main_res.headers if main_res else {}
+    await page.wait_for_timeout(500)  # Allow initial render / async scripts to settle
 
     # 1. Horizontal Scroll Overflow Check
     overflow_data = await page.evaluate("""() => {
@@ -223,7 +224,8 @@ async def run_passive_sensor(
         console_errors=console_errors,
         layout_collisions=layout_collisions,
         accessibility_issues=a11y_issues,
-        aria_snapshot=aria_text
+        aria_snapshot=aria_text,
+        main_headers=main_headers
     )
 
     return telemetry
