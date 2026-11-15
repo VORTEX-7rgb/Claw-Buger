@@ -123,108 +123,110 @@ async def execute_full_audit(target_url: str):
     # Rule 1: White-labeled neural engine log
     await emit_log("INFO", f"🧠 ClawCore Neural Engine: Initializing audit job #{job_id} on {target_url}...")
 
-    async with async_playwright() as p:
-        browser = await launch_browser(p)
-        
-        # Isolated primary context for inspection
-        context = await browser.new_context(viewport={"width": 375, "height": 667})
-        page = await context.new_page()
+    try:
+        async with async_playwright() as p:
+            browser = await launch_browser(p)
+            try:
+                # Isolated primary context for inspection
+                context = await browser.new_context(viewport={"width": 375, "height": 667})
+                page = await context.new_page()
 
-        # Rule 2: Setup CDP Screencast with frame forwarding
-        async def on_screencast_frame(base64_data: str):
-            await manager.broadcast({
-                "type": "frame",
-                "data": base64_data
-            })
-
-        cdp = await setup_cdp_screencast(page, on_screencast_frame)
-
-        # -------------------------------------------------------------
-        # Phase 1: Passive Sensor (Mobile 375px layout, collisions, a11y)
-        # -------------------------------------------------------------
-        await emit_log("INFO", "=== Phase 1: Passive Recon & Mobile Collision Math (375x667) ===")
-        telemetry = await run_passive_sensor(page, target_url, emit_log)
-
-        if telemetry.layout_collisions:
-            await emit_log("WARN", f"💥 Found {len(telemetry.layout_collisions)} mobile layout collisions!")
-            for coll in telemetry.layout_collisions:
-                await emit_log("WARN", f"   • {coll.floating_selector} blocks {coll.blocked_selector} (Overlap: {coll.overlap_w}x{coll.overlap_h}px)")
-
-        if telemetry.network_errors:
-            for n_err in telemetry.network_errors:
-                await emit_log("WARN", f"⚠️ Network {n_err.status}: {n_err.url}")
-
-        # -------------------------------------------------------------
-        # Phase 2: Active UI Flow Verifier (Desktop switch, unblocked clicks)
-        # -------------------------------------------------------------
-        await emit_log("INFO", "=== Phase 2: Active UI Flow & Chaos QA Verification ===")
-        active_bugs = await run_active_verifier(page, target_url, emit_log)
-
-        # -------------------------------------------------------------
-        # Phase 3: 3/3 Parallel Isolated Sandbox Reproduction (Rubric)
-        # -------------------------------------------------------------
-        if active_bugs:
-            await emit_log("INFO", f"=== Phase 3: Mandatory 3/3 Parallel Isolated Replay ({len(active_bugs)} functional bugs) ===")
-            for bug in active_bugs:
-                async def tick_callback(sandbox_id: int, status: str):
+                # Rule 2: Setup CDP Screencast with frame forwarding
+                async def on_screencast_frame(base64_data: str):
                     await manager.broadcast({
-                        "type": "repro_tick",
-                        "bug_id": bug.bug_id,
-                        "sandbox": sandbox_id,
-                        "status": status
+                        "type": "frame",
+                        "data": base64_data
                     })
 
-                await reproduce_bug_3x(browser, target_url, bug, emit_log, tick_callback)
+                cdp = await setup_cdp_screencast(page, on_screencast_frame)
 
-        # -------------------------------------------------------------
-        # Phase 4: Multi-Page Autonomous Crawler (Same page instance)
-        # -------------------------------------------------------------
-        async def on_crawl_node(node_dict: dict):
-            await manager.broadcast(node_dict)
+                # -------------------------------------------------------------
+                # Phase 1: Passive Sensor (Mobile 375px layout, collisions, a11y)
+                # -------------------------------------------------------------
+                await emit_log("INFO", "=== Phase 1: Passive Recon & Mobile Collision Math (375x667) ===")
+                telemetry = await run_passive_sensor(page, target_url, emit_log)
 
-        crawl_telemetry = await run_multipage_crawler(page, target_url, emit_log, on_crawl_node)
+                if telemetry.layout_collisions:
+                    await emit_log("WARN", f"💥 Found {len(telemetry.layout_collisions)} mobile layout collisions!")
+                    for coll in telemetry.layout_collisions:
+                        await emit_log("WARN", f"   • {coll.floating_selector} blocks {coll.blocked_selector} (Overlap: {coll.overlap_w}x{coll.overlap_h}px)")
 
-        # -------------------------------------------------------------
-        # Phase 5: Defensive Security & Configuration Hygiene Inspector
-        # -------------------------------------------------------------
-        await emit_log("INFO", "=== Phase 5: Defensive Security & Configuration Hygiene Inspection ===")
-        security_findings = await run_security_audit(page, target_url, telemetry.main_headers, emit_log)
+                if telemetry.network_errors:
+                    for n_err in telemetry.network_errors:
+                        await emit_log("WARN", f"⚠️ Network {n_err.status}: {n_err.url}")
 
-        # -------------------------------------------------------------
-        # Phase 6: ClawCore Neural Engine Cross-Vector Synthesis & Bridge Handoff
-        # -------------------------------------------------------------
-        await emit_log("INFO", "=== Phase 6: ClawCore Neural Engine Cross-Vector Synthesis & Bridge Handoff ===")
-        await emit_log("INFO", f"🧠 ClawCore Neural Engine: Ingesting telemetry packet for job #{job_id}...")
+                # -------------------------------------------------------------
+                # Phase 2: Active UI Flow Verifier (Desktop switch, unblocked clicks)
+                # -------------------------------------------------------------
+                await emit_log("INFO", "=== Phase 2: Active UI Flow & Chaos QA Verification ===")
+                active_bugs = await run_active_verifier(page, target_url, emit_log)
 
-        # Write to inbox for Antigravity bridge
-        dispatch_telemetry_inbox(
-            job_id,
-            target_url,
-            telemetry.model_dump(),
-            [b.model_dump() for b in active_bugs],
-            crawl_telemetry.model_dump(),
-            security_findings
-        )
-        await emit_log("INFO", "🧠 ClawCore Neural Engine: Telemetry written to bridge. Waiting for live AI synthesis...")
+                # -------------------------------------------------------------
+                # Phase 3: 3/3 Parallel Isolated Sandbox Reproduction (Rubric)
+                # -------------------------------------------------------------
+                if active_bugs:
+                    await emit_log("INFO", f"=== Phase 3: Mandatory 3/3 Parallel Isolated Replay ({len(active_bugs)} functional bugs) ===")
+                    for bug in active_bugs:
+                        async def tick_callback(sandbox_id: int, status: str):
+                            await manager.broadcast({
+                                "type": "repro_tick",
+                                "bug_id": bug.bug_id,
+                                "sandbox": sandbox_id,
+                                "status": status
+                            })
 
-        # Step 1: Wait up to 45.0s for Antigravity live AI synthesis before fallback
-        final_bugs, ai_thoughts = await wait_for_ai_outbox(
-            job_id=job_id,
-            target_url=target_url,
-            emit_log=emit_log,
-            timeout=45.0,
-            telemetry_data=telemetry.model_dump(),
-            active_bugs_input=active_bugs,
-            crawl_data=crawl_telemetry.model_dump(),
-            security_data=security_findings
-        )
+                        await reproduce_bug_3x(browser, target_url, bug, emit_log, tick_callback)
 
-        if ai_thoughts and "fallback" not in ai_thoughts.lower():
-            await emit_log("INFO", f"🧠 ClawCore Neural Engine [Live CoT]: {ai_thoughts[:250]}...")
+                # -------------------------------------------------------------
+                # Phase 4: Multi-Page Autonomous Crawler (Same page instance)
+                # -------------------------------------------------------------
+                async def on_crawl_node(node_dict: dict):
+                    await manager.broadcast(node_dict)
 
-        # Close audit browser
-        await context.close()
-        await browser.close()
+                crawl_telemetry = await run_multipage_crawler(page, target_url, emit_log, on_crawl_node)
+
+                # -------------------------------------------------------------
+                # Phase 5: Defensive Security & Configuration Hygiene Inspector
+                # -------------------------------------------------------------
+                await emit_log("INFO", "=== Phase 5: Defensive Security & Configuration Hygiene Inspection ===")
+                security_findings = await run_security_audit(page, target_url, telemetry.main_headers, emit_log)
+
+                # -------------------------------------------------------------
+                # Phase 6: ClawCore Neural Engine Cross-Vector Synthesis & Bridge Handoff
+                # -------------------------------------------------------------
+                await emit_log("INFO", "=== Phase 6: ClawCore Neural Engine Cross-Vector Synthesis & Bridge Handoff ===")
+                await emit_log("INFO", f"🧠 ClawCore Neural Engine: Ingesting telemetry packet for job #{job_id}...")
+
+                # Write to inbox for Antigravity bridge
+                dispatch_telemetry_inbox(
+                    job_id,
+                    target_url,
+                    telemetry.model_dump(),
+                    [b.model_dump() for b in active_bugs],
+                    crawl_telemetry.model_dump(),
+                    security_findings
+                )
+                await emit_log("INFO", "🧠 ClawCore Neural Engine: Telemetry written to bridge. Waiting for live AI synthesis...")
+
+                # Step 1: Wait up to 45.0s for Antigravity live AI synthesis before fallback
+                final_bugs, ai_thoughts = await wait_for_ai_outbox(
+                    job_id=job_id,
+                    target_url=target_url,
+                    emit_log=emit_log,
+                    timeout=45.0,
+                    telemetry_data=telemetry.model_dump(),
+                    active_bugs_input=active_bugs,
+                    crawl_data=crawl_telemetry.model_dump(),
+                    security_data=security_findings
+                )
+
+                if ai_thoughts and "fallback" not in ai_thoughts.lower():
+                    await emit_log("INFO", f"🧠 ClawCore Neural Engine [Live CoT]: {ai_thoughts[:250]}...")
+
+                # Close audit context
+                await context.close()
+            finally:
+                await browser.close()
 
         # Update cache
         latest_report["target_url"] = target_url
@@ -245,6 +247,13 @@ async def execute_full_audit(target_url: str):
         await manager.broadcast({
             "type": "audit_complete",
             "report": latest_report
+        })
+    except Exception as err:
+        logger.error(f"Audit execution error: {err}", exc_info=True)
+        await emit_log("ERROR", f"❌ Audit failed on {target_url}: {str(err)[:120]}")
+        await manager.broadcast({
+            "type": "audit_error",
+            "error": str(err)
         })
 
 @app.websocket("/ws")

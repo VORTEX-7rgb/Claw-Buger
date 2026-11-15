@@ -266,7 +266,7 @@ async def run_multipage_crawler(
 
         try:
             # Sequential navigation inside the SAME page instance so CDP screencast continues
-            res = await page.goto(route, wait_until="domcontentloaded", timeout=4000)
+            res = await page.goto(route, wait_until="domcontentloaded", timeout=12000)
             status_code = res.status if res else 200
             sub_node.status_code = status_code
 
@@ -318,7 +318,7 @@ async def run_multipage_crawler(
 
     # Navigate back to original entry URL so the visual state resets cleanly
     try:
-        await page.goto(target_url, wait_until="domcontentloaded", timeout=4000)
+        await page.goto(target_url, wait_until="domcontentloaded", timeout=12000)
     except Exception:
         pass
 

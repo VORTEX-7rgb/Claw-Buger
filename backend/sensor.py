@@ -86,7 +86,7 @@ async def run_passive_sensor(
     if log_emitter:
         await log_emitter("INFO", f"🌐 Navigating to {target_url}...")
 
-    main_res = await page.goto(target_url, wait_until="domcontentloaded", timeout=8000)
+    main_res = await page.goto(target_url, wait_until="domcontentloaded", timeout=25000)
     main_headers = main_res.headers if main_res else {}
     await page.wait_for_timeout(500)  # Allow initial render / async scripts to settle
 
