@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ClawBugger — Autonomous QA & BugHunter Engine</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @keyframes pulse-glow {
+      0%, 100% { opacity: 0.6; transform: scale(1); }
+      50% { opacity: 1; transform: scale(1.05); }
+    }
+    .glow-dot {
+      animation: pulse-glow 2s infinite ease-in-out;
+    }
+    /* Custom scrollbar for terminal */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #0f172a; }
+    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: #475569; }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col font-sans selection:bg-indigo-500 selection:text-white">
+
+  <!-- Top Navigation Bar -->
+  <header class="border-b border-slate-800 bg-slate-900/90 backdrop-blur sticky top-0 z-50 px-6 py-3.5 flex flex-wrap items-center justify-between gap-4">
+    <div class="flex items-center space-x-3">
+      <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-rose-600 via-indigo-600 to-amber-500 flex items-center justify-center text-xl shadow-lg shadow-indigo-500/20">
+        🦞
+      </div>
+      <div>
+        <div class="flex items-center gap-2">
+          <h1 class="text-lg font-black tracking-tight text-white flex items-center gap-1.5">
+            ClawBugger
+            <span class="text-[10px] font-semibold bg-indigo-500/20 text-indigo-400 border border-indigo-500/30 px-2 py-0.5 rounded-full uppercase tracking-wider">v1.0 • Track 03</span>
+          </h1>
+        </div>
+        <p class="text-xs text-slate-400">Autonomous QA & BugHunter Engine • VibeNova 2026</p>
+      </div>
+    </div>
+
+    <!-- URL Input & Control Center -->
+    <div class="flex items-center gap-3 flex-1 max-w-2xl justify-end">
+      <div class="relative flex-1 max-w-md">
+        <input 
+          type="text" 
+          id="target-url" 
+          value="http://localhost:8000/store" 
+          class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3.5 py-2 text-xs font-mono text-slate-200 focus:outline-none focus:border-indigo-500 pr-24 shadow-inner"
+          placeholder="Enter target URL..."
+        />
+        <div class="absolute right-1.5 top-1.5 flex gap-1">
+          <button onclick="setUrl('http://localhost:8000/store')" class="text-[10px] bg-slate-800 hover:bg-slate-700 text-slate-300 px-2 py-0.5 rounded transition">
+            Demo Store
+          </button>
+          <button onclick="setUrl('https://revsmith.in')" class="text-[10px] bg-slate-800 hover:bg-slate-700 text-slate-300 px-2 py-0.5 rounded transition">
+            Revsmith
+          </button>
+        </div>
+      </div>
+
+      <button 
+        id="run-btn" 
+        onclick="startAudit()" 
+        class="bg-gradient-to-r from-rose-600 to-indigo-600 hover:from-rose-500 hover:to-indigo-500 text-white font-semibold px-5 py-2 rounded-lg text-xs shadow-lg shadow-indigo-600/30 transition flex items-center gap-2 cursor-pointer"
+      >
+        <span id="btn-icon">⚡</span>
+        <span id="btn-text">Launch ClawBugger</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Split-Screen Workspace -->
+  <main class="flex-1 max-w-7xl w-full mx-auto p-4 lg:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+    
+    <!-- LEFT PANEL: 375px Live Mobile Emulator (col-span-5) -->
+    <section class="lg:col-span-5 flex flex-col items-center">
+      <div class="w-full flex items-center justify-between pb-3 border-b border-slate-800/80 mb-4">
+        <div class="flex items-center gap-2">
+          <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 glow-dot"></span>
+          <h2 class="text-xs font-bold uppercase tracking-wider text-slate-300">Live Mobile Emulator</h2>
+        </div>
+        <span id="stream-status" class="text-[11px] font-mono text-slate-400 bg-slate-900 border border-slate-800 px-2.5 py-0.5 rounded-full">
+          375 × 667 • Ready
+        </span>
+      </div>
+
+      <!-- iPhone Frame Container -->
+      <div class="relative bg-slate-900 border-4 border-slate-800 rounded-[40px] p-3 shadow-2xl shadow-indigo-950/40 w-[340px] h-[640px] flex flex-col items-center justify-between">
+        <!-- Top Speaker / Dynamic Island Notch -->
+        <div class="w-24 h-4 bg-slate-950 rounded-full mb-2 flex items-center justify-center">
+          <div class="w-2 h-2 rounded-full bg-slate-800 mr-2"></div>
+          <div class="w-8 h-1.5 rounded-full bg-slate-800"></div>
+        </div>
+
+        <!-- Canvas Screen -->
+        <div class="relative w-[315px] h-[560px] bg-slate-950 rounded-[28px] overflow-hidden border border-slate-800/60 flex items-center justify-center">
+          <canvas id="screencast-canvas" class="w-full h-full object-contain hidden"></canvas>
+          <div id="canvas-placeholder" class="text-center p-6 space-y-3">
+            <div class="text-3xl animate-bounce">📱</div>
+            <p class="text-xs font-medium text-slate-400">Waiting for live CDP stream...</p>
+            <p class="text-[10px] text-slate-500">Frames stream over WebSockets at 25–30 FPS when ClawBugger runs.</p>
+          </div>
+        </div>
+
+        <!-- Bottom Home Indicator -->
+        <div class="w-28 h-1 bg-slate-700 rounded-full mt-2"></div>
+      </div>
+    </section>
+
+    <!-- RIGHT PANEL: Telemetry Console & Proven Bugs (col-span-7) -->
+    <section class="lg:col-span-7 flex flex-col space-y-6">
+      
+      <!-- Live Telemetry Terminal -->
+      <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 shadow-xl flex flex-col h-72">
+        <div class="flex items-center justify-between pb-3 border-b border-slate-800 text-xs">
+          <div class="flex items-center gap-2">
+            <div class="flex space-x-1.5">
+              <span class="w-2.5 h-2.5 rounded-full bg-rose-500/80"></span>
+              <span class="w-2.5 h-2.5 rounded-full bg-amber-500/80"></span>
+              <span class="w-2.5 h-2.5 rounded-full bg-emerald-500/80"></span>
+            </div>
+            <span class="font-bold text-slate-300 ml-1">Live Telemetry & Execution Log</span>
+          </div>
+          <span class="text-[11px] font-mono text-indigo-400 bg-indigo-950/60 border border-indigo-800/50 px-2 py-0.5 rounded">
+            ws://localhost:8000/ws
+          </span>
+        </div>
+
+        <!-- Scrollable Log Output -->
+        <div id="log-box" class="flex-1 overflow-y-auto font-mono text-xs p-3 space-y-1 text-slate-300 mt-2 bg-slate-950/90 rounded-lg border border-slate-900">
+          <div class="text-slate-500">// Connected to ClawBugger backend engine. Click "Launch ClawBugger" to start audit.</div>
+        </div>
+      </div>
+
+      <!-- Proven Bugs & Deliverables (Rubric) -->
+      <div class="flex-1 bg-slate-900/60 border border-slate-800 rounded-2xl p-5 shadow-xl flex flex-col">
+        <div class="flex items-center justify-between pb-4 border-b border-slate-800">
+          <div>
+            <h2 class="text-sm font-bold text-white flex items-center gap-2">
+              <span>🎯 Proven Bugs & Regression Deliverables</span>
+              <span id="bug-count-badge" class="bg-rose-500/20 text-rose-400 border border-rose-500/30 text-[10px] font-bold px-2 py-0.5 rounded-full">
+                0 Discovered
+              </span>
+            </h2>
+            <p class="text-xs text-slate-400 mt-0.5">Every bug verified 3/3 in isolated sandboxes with ready-to-run Playwright tests.</p>
+          </div>
+        </div>
+
+        <!-- Bugs Container -->
+        <div id="bugs-container" class="py-4 space-y-3.5">
+          <div id="no-bugs-msg" class="text-center py-10 text-slate-500 text-xs">
+            No audit completed yet. Click <strong>Launch ClawBugger</strong> above to run full autonomous scan.
+          </div>
+        </div>
+      </div>
+
+    </section>
+  </main>
+
+  <!-- GitHub Issue Modal -->
+  <div id="issue-modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-2xl w-full p-6 shadow-2xl flex flex-col max-h-[85vh]">
+      <div class="flex items-center justify-between pb-4 border-b border-slate-800">
+        <h3 class="text-sm font-bold text-white flex items-center gap-2">
+          <span>🐙 1-Click GitHub Issue Payload</span>
+        </h3>
+        <button onclick="closeModal()" class="text-slate-400 hover:text-white text-lg">&times;</button>
+      </div>
+      <div class="my-4 flex-1 overflow-y-auto">
+        <label class="text-xs text-slate-400 font-semibold mb-1 block">Issue Title</label>
+        <input type="text" id="modal-title" class="w-full bg-slate-950 border border-slate-800 rounded px-3 py-1.5 text-xs text-white font-mono mb-3" readonly />
+        
+        <label class="text-xs text-slate-400 font-semibold mb-1 block">Markdown Body</label>
+        <textarea id="modal-body" class="w-full h-64 bg-slate-950 border border-slate-800 rounded p-3 text-xs text-slate-300 font-mono resize-none" readonly></textarea>
+      </div>
+      <div class="flex justify-end gap-3 pt-3 border-t border-slate-800">
+        <button onclick="closeModal()" class="px-4 py-1.5 text-xs rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300">Close</button>
+        <button onclick="copyModalContent()" id="copy-btn" class="px-4 py-1.5 text-xs rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-medium">Copy to Clipboard</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let ws;
+    let canvas = document.getElementById('screencast-canvas');
+    let ctx = canvas.getContext('2d');
+    let placeholder = document.getElementById('canvas-placeholder');
+    let logBox = document.getElementById('log-box');
+    let bugsContainer = document.getElementById('bugs-container');
+    let noBugsMsg = document.getElementById('no-bugs-msg');
+    let bugCountBadge = document.getElementById('bug-count-badge');
+    let currentBugs = [];
+
+    function setUrl(url) {
+      document.getElementById('target-url').value = url;
+    }
+
+    function connectWS() {
+      const loc = window.location;
+      const wsUrl = (loc.protocol === "https:" ? "wss://" : "ws://") + loc.host + "/ws";
+      ws = new WebSocket(wsUrl);
+
+      ws.onopen = () => {
+        appendLog('SUCCESS', 'Connected to ClawBugger WebSocket hub (/ws). Ready.');
+      };
+
+      ws.onmessage = (event) => {
+        try {
+          const msg = JSON.parse(event.data);
+
+          if (msg.type === 'frame') {
+            handleFrame(msg.data);
+          } else if (msg.type === 'log') {
+            appendLog(msg.level, msg.message);
+          } else if (msg.type === 'repro_tick') {
+            appendLog('INFO', `   ⚡ Sandbox #${msg.sandbox} [${msg.bug_id}]: ${msg.status}`);
+          } else if (msg.type === 'bug_found') {
+            renderBug(msg.bug);
+          } else if (msg.type === 'audit_complete') {
+            handleAuditComplete(msg.report);
+          }
+        } catch (e) {
+          console.error(e);
+        }
+      };
+
+      ws.onclose = () => {
+        appendLog('WARN', 'WebSocket disconnected. Retrying in 2 seconds...');
+        setTimeout(connectWS, 2000);
+      };
+    }
+
+    function handleFrame(base64Data) {
+      if (canvas.classList.contains('hidden')) {
+        canvas.classList.remove('hidden');
+        placeholder.classList.add('hidden');
+      }
+      const img = new Image();
+      img.onload = () => {
+        canvas.width = img.width;
+        canvas.height = img.height;
+        ctx.drawImage(img, 0, 0);
+      };
+      img.src = 'data:image/jpeg;base64,' + base64Data;
+      document.getElementById('stream-status').innerText = '375 × 667 • 30 FPS Live';
+    }
+
+    function appendLog(level, text) {
+      const el = document.createElement('div');
+      const time = new Date().toLocaleTimeString();
+      let colorClass = 'text-slate-300';
+      if (level === 'WARN') colorClass = 'text-amber-400';
+      if (level === 'SUCCESS') colorClass = 'text-emerald-400 font-semibold';
+      if (level === 'ERROR') colorClass = 'text-rose-400 font-bold';
+
+      el.className = `leading-relaxed ${colorClass}`;
+      el.innerHTML = `<span class="text-slate-500 select-none">[${time}]</span> ${text}`;
+      logBox.appendChild(el);
+      logBox.scrollTop = logBox.scrollHeight;
+    }
+
+    function startAudit() {
+      const url = document.getElementById('target-url').value.trim();
+      if (!url) return alert('Please enter a target URL.');
+
+      const runBtn = document.getElementById('run-btn');
+      runBtn.disabled = true;
+      document.getElementById('btn-icon').innerText = '⏳';
+      document.getElementById('btn-text').innerText = 'Hunting Bugs...';
+      
+      // Reset UI state
+      bugsContainer.innerHTML = '';
+      currentBugs = [];
+      bugCountBadge.innerText = '0 Discovered';
+      appendLog('INFO', `------------------------------------------------------`);
+      appendLog('INFO', `Starting autonomous audit on ${url}...`);
+
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({ action: 'start_audit', url: url }));
+      } else {
+        fetch('/api/audit', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url: url })
+        });
+      }
+    }
+
+    function renderBug(bug) {
+      if (noBugsMsg) noBugsMsg.remove();
+      currentBugs.push(bug);
+      bugCountBadge.innerText = `${currentBugs.length} Confirmed`;
+
+      let sevColor = 'bg-amber-500/20 text-amber-300 border-amber-500/30';
+      if (bug.severity.includes('P0')) sevColor = 'bg-rose-500/20 text-rose-300 border-rose-500/30';
+      if (bug.severity.includes('P2')) sevColor = 'bg-indigo-500/20 text-indigo-300 border-indigo-500/30';
+
+      const card = document.createElement('div');
+      card.className = "bg-slate-950/80 border border-slate-800 rounded-xl p-4 shadow-lg transition hover:border-slate-700 flex flex-col gap-3";
+      
+      card.innerHTML = `
+        <div class="flex items-start justify-between gap-3">
+          <div>
+            <div class="flex items-center gap-2 mb-1">
+              <span class="text-[10px] font-bold px-2 py-0.5 rounded border ${sevColor}">
+                ${bug.severity}
+              </span>
+              <span class="text-xs font-mono font-bold text-white">${bug.bug_id}</span>
+              <span class="text-[10px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-2 py-0.5 rounded-full font-semibold">
+                🛡️ ${bug.reproduction_rate}
+              </span>
+            </div>
+            <h4 class="text-xs font-bold text-slate-100">${bug.title}</h4>
+          </div>
+        </div>
+
+        <div class="text-[11px] text-slate-400 space-y-1 bg-slate-900/60 p-2.5 rounded-lg border border-slate-900">
+          <div class="font-semibold text-slate-300">Reproduction Steps:</div>
+          <ol class="list-decimal list-inside space-y-0.5 text-slate-400">
+            ${bug.repro_steps.map(s => `<li>${s}</li>`).join('')}
+          </ol>
+        </div>
+
+        <div class="flex items-center gap-2 pt-1 border-t border-slate-900">
+          <a href="/api/export-spec/${bug.bug_id}" class="text-[11px] bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/40 px-3 py-1.5 rounded-lg font-medium transition flex items-center gap-1.5">
+            📄 Download Playwright .spec.ts
+          </a>
+          <button onclick='openIssueModal(${JSON.stringify(bug).replace(/'/g, "&#39;")})' class="text-[11px] bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 px-3 py-1.5 rounded-lg font-medium transition flex items-center gap-1.5">
+            🐙 1-Click GitHub Issue
+          </button>
+        </div>
+      `;
+      bugsContainer.appendChild(card);
+    }
+
+    function handleAuditComplete(report) {
+      const runBtn = document.getElementById('run-btn');
+      runBtn.disabled = false;
+      document.getElementById('btn-icon').innerText = '⚡';
+      document.getElementById('btn-text').innerText = 'Launch ClawBugger';
+      document.getElementById('stream-status').innerText = '375 × 667 • Audit Complete';
+
+      if (report.bugs && report.bugs.length > 0 && currentBugs.length === 0) {
+        bugsContainer.innerHTML = '';
+        report.bugs.forEach(b => renderBug(b));
+      }
+    }
+
+    function openIssueModal(bug) {
+      fetch('/api/github-issue', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(bug)
+      })
+      .then(res => res.json())
+      .then(data => {
+        document.getElementById('modal-title').value = data.issue.title;
+        document.getElementById('modal-body').value = data.issue.body;
+        document.getElementById('issue-modal').classList.remove('hidden');
+      });
+    }
+
+    function closeModal() {
+      document.getElementById('issue-modal').classList.add('hidden');
+    }
+
+    function copyModalContent() {
+      const title = document.getElementById('modal-title').value;
+      const body = document.getElementById('modal-body').value;
+      navigator.clipboard.writeText(`Title: ${title}\n\n${body}`).then(() => {
+        const btn = document.getElementById('copy-btn');
+        btn.innerText = 'Copied!';
+        setTimeout(() => btn.innerText = 'Copy to Clipboard', 2000);
+      });
+    }
+
+    window.onload = connectWS;
+  </script>
+</body>
+</html>

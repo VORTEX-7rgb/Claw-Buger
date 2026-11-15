@@ -1,0 +1,255 @@
+import os
+import sys
+import json
+import asyncio
+import logging
+
+if sys.platform == "win32":
+    # Required for Playwright async subprocesses on Windows
+    asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
+
+from typing import List, Dict, Any, Set
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import HTMLResponse, PlainTextResponse, JSONResponse
+from fastapi.staticfiles import StaticFiles
+from playwright.async_api import async_playwright, Browser, Page
+
+from models import AuditRequest, BugEvidence, TelemetryPayload
+from sensor import setup_cdp_screencast, run_passive_sensor
+from verifier import run_active_verifier
+from reproducer import reproduce_bug_3x
+from analyst import process_audit_findings, generate_github_issue, generate_spec_ts
+
+logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(name)s: %(message)s")
+logger = logging.getLogger("clawbugger.main")
+
+app = FastAPI(title="ClawBugger QA Agent", version="1.0.0")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Store app directory
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+TARGET_STORE_DIR = os.path.join(BASE_DIR, "apps", "target-store")
+
+if os.path.exists(TARGET_STORE_DIR):
+    app.mount("/store", StaticFiles(directory=TARGET_STORE_DIR, html=True), name="target-store")
+
+# Active WebSocket connections
+active_connections: Set[WebSocket] = set()
+
+# Latest audit report cache
+latest_report: Dict[str, Any] = {
+    "target_url": "",
+    "bugs": [],
+    "telemetry": {}
+}
+
+class ConnectionManager:
+    async def connect(self, websocket: WebSocket):
+        await websocket.accept()
+        active_connections.add(websocket)
+
+    def disconnect(self, websocket: WebSocket):
+        active_connections.discard(websocket)
+
+    async def broadcast(self, message: dict):
+        dead_connections = set()
+        for conn in list(active_connections):
+            try:
+                await conn.send_text(json.dumps(message))
+            except Exception:
+                dead_connections.add(conn)
+        for dead in dead_connections:
+            active_connections.discard(dead)
+
+manager = ConnectionManager()
+
+async def launch_browser(p) -> Browser:
+    """
+    Robust browser launcher: Tries native Chrome, then Edge, then default Chromium.
+    """
+    for channel in ["chrome", "msedge", None]:
+        try:
+            if channel:
+                logger.info(f"Attempting to launch browser with channel='{channel}'...")
+                return await p.chromium.launch(channel=channel, headless=True)
+            else:
+                logger.info("Attempting to launch default Playwright chromium...")
+                return await p.chromium.launch(headless=True)
+        except Exception as e:
+            logger.warning(f"Browser launch with channel={channel} failed: {e}")
+    raise RuntimeError("Unable to launch any Chromium-compatible browser.")
+
+async def execute_full_audit(target_url: str):
+    """
+    Coordinates the full ClawBugger QA pipeline:
+    1. CDP Screencast Setup
+    2. Passive & Mobile Layout Sensor (375x667)
+    3. Active UI Flow Verification (1280x800)
+    4. 3/3 Parallel Sandbox Reproduction
+    5. Spec & Deliverable Generation
+    """
+    async def emit_log(level: str, msg: str):
+        logger.info(f"[{level}] {msg}")
+        await manager.broadcast({
+            "type": "log",
+            "level": level,
+            "message": msg
+        })
+
+    await emit_log("INFO", f"🚀 Launching ClawBugger Autonomous QA Engine on {target_url}...")
+
+    async with async_playwright() as p:
+        browser = await launch_browser(p)
+        
+        # Isolated primary context for inspection
+        context = await browser.new_context(viewport={"width": 375, "height": 667})
+        page = await context.new_page()
+
+        # Rule 2: Setup CDP Screencast with frame forwarding
+        async def on_screencast_frame(base64_data: str):
+            await manager.broadcast({
+                "type": "frame",
+                "data": base64_data
+            })
+
+        cdp = await setup_cdp_screencast(page, on_screencast_frame)
+
+        # -------------------------------------------------------------
+        # Phase 1: Passive Sensor (Mobile 375px layout, collisions, a11y)
+        # -------------------------------------------------------------
+        await emit_log("INFO", "=== Phase 1: Passive Recon & Mobile Collision Math (375x667) ===")
+        telemetry = await run_passive_sensor(page, target_url, emit_log)
+
+        if telemetry.layout_collisions:
+            await emit_log("WARN", f"💥 Found {len(telemetry.layout_collisions)} mobile layout collisions!")
+            for coll in telemetry.layout_collisions:
+                await emit_log("WARN", f"   • {coll.floating_selector} blocks {coll.blocked_selector} (Overlap: {coll.overlap_w}x{coll.overlap_h}px)")
+
+        if telemetry.network_errors:
+            for n_err in telemetry.network_errors:
+                await emit_log("WARN", f"⚠️ Network {n_err.status}: {n_err.url}")
+
+        # -------------------------------------------------------------
+        # Phase 2: Active UI Flow Verifier (Desktop switch, unblocked clicks)
+        # -------------------------------------------------------------
+        await emit_log("INFO", "=== Phase 2: Active UI Flow & Chaos QA Verification ===")
+        active_bugs = await run_active_verifier(page, target_url, emit_log)
+
+        # -------------------------------------------------------------
+        # Phase 3: 3/3 Parallel Isolated Sandbox Reproduction (Rubric)
+        # -------------------------------------------------------------
+        if active_bugs:
+            await emit_log("INFO", f"=== Phase 3: Mandatory 3/3 Parallel Isolated Replay ({len(active_bugs)} functional bugs) ===")
+            for bug in active_bugs:
+                async def tick_callback(sandbox_id: int, status: str):
+                    await manager.broadcast({
+                        "type": "repro_tick",
+                        "bug_id": bug.bug_id,
+                        "sandbox": sandbox_id,
+                        "status": status
+                    })
+
+                await reproduce_bug_3x(browser, target_url, bug, emit_log, tick_callback)
+
+        # -------------------------------------------------------------
+        # Phase 4: Telemetry Synthesis & Deliverable Generation
+        # -------------------------------------------------------------
+        await emit_log("INFO", "=== Phase 4: Generating Self-Healing Playwright .spec.ts & GitHub Issues ===")
+        final_bugs = process_audit_findings(telemetry, active_bugs)
+
+        # Close audit browser
+        await context.close()
+        await browser.close()
+
+        # Update cache
+        latest_report["target_url"] = target_url
+        latest_report["bugs"] = [b.model_dump() for b in final_bugs]
+        latest_report["telemetry"] = telemetry.model_dump()
+
+        # Broadcast each proven bug to UI
+        for bug in final_bugs:
+            await manager.broadcast({
+                "type": "bug_found",
+                "bug": bug.model_dump()
+            })
+
+        await emit_log("SUCCESS", f"🏁 ClawBugger Audit Complete! Found {len(final_bugs)} confirmed bugs (100% deterministic).")
+        await manager.broadcast({
+            "type": "audit_complete",
+            "report": latest_report
+        })
+
+@app.websocket("/ws")
+async def websocket_endpoint(websocket: WebSocket):
+    await manager.connect(websocket)
+    try:
+        # If there's already a report cached, send it upon connecting
+        if latest_report["bugs"]:
+            await websocket.send_text(json.dumps({
+                "type": "audit_complete",
+                "report": latest_report
+            }))
+
+        while True:
+            text = await websocket.receive_text()
+            data = json.loads(text)
+            action = data.get("action")
+            
+            if action == "start_audit":
+                url = data.get("url", "http://localhost:8000/store")
+                asyncio.create_task(execute_full_audit(url))
+
+    except WebSocketDisconnect:
+        manager.disconnect(websocket)
+    except Exception as e:
+        logger.error(f"WebSocket error: {e}")
+        manager.disconnect(websocket)
+
+@app.post("/api/audit")
+async def trigger_audit(req: AuditRequest):
+    asyncio.create_task(execute_full_audit(req.url))
+    return {"status": "started", "target_url": req.url}
+
+@app.get("/api/report")
+async def get_report():
+    return latest_report
+
+@app.post("/api/github-issue")
+async def create_github_issue(bug_data: Dict[str, Any]):
+    try:
+        bug = BugEvidence(**bug_data)
+        issue_payload = generate_github_issue(bug, latest_report.get("target_url", "http://localhost:8000/store"))
+        return {"status": "success", "issue": issue_payload}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@app.get("/api/export-spec/{bug_id}")
+async def export_spec(bug_id: str):
+    for bug_dict in latest_report.get("bugs", []):
+        if bug_dict.get("bug_id") == bug_id:
+            spec = bug_dict.get("spec_code") or generate_spec_ts(BugEvidence(**bug_dict), latest_report.get("target_url", ""))
+            return PlainTextResponse(spec, media_type="text/plain", headers={"Content-Disposition": f"attachment; filename={bug_id}.spec.ts"})
+    raise HTTPException(status_code=404, detail="Bug ID not found")
+
+@app.get("/", response_class=HTMLResponse)
+async def serve_dashboard():
+    # Return split-screen dark-mode frontend dashboard
+    dashboard_path = os.path.join(os.path.dirname(__file__), "dashboard.html")
+    if os.path.exists(dashboard_path):
+        with open(dashboard_path, "r", encoding="utf-8") as f:
+            return f.read()
+    return "<h1>ClawBugger Dashboard HTML missing</h1>"
+
+if __name__ == "__main__":
+    import uvicorn
+    # Use reload=False on Windows to preserve WindowsProactorEventLoop for Playwright subprocesses
+    uvicorn.run("main:app", host="127.0.0.1", port=8000, reload=False)
+
