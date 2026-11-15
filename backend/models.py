@@ -4,7 +4,7 @@ from typing import List, Dict, Any, Optional
 class BugEvidence(BaseModel):
     bug_id: str
     title: str
-    category: str  # "Layout Collision" | "Race Condition" | "State Loss" | "Form Validation" | "Accessibility"
+    category: str  # "Layout Collision" | "Race Condition" | "State Loss" | "Form Validation" | "Accessibility" | "Navigation Trap" | "Runtime Exception" | "Broken Route"
     severity: str  # "P0 (Critical)" | "P1 (High)" | "P2 (Medium)"
     reproduction_rate: str  # e.g., "3/3 Reproduced"
     affected_elements: List[str] = Field(default_factory=list)
@@ -39,9 +39,28 @@ class TelemetryPayload(BaseModel):
     accessibility_issues: List[Dict[str, Any]] = Field(default_factory=list)
     aria_snapshot: Optional[str] = None
 
+class CrawlNode(BaseModel):
+    url: str
+    path: str
+    status_code: int = 200
+    status: str = "healthy"  # "healthy" | "buggy"
+    title: Optional[str] = None
+    has_meta_desc: bool = True
+    issues: List[str] = Field(default_factory=list)
+    on_click_errors: List[str] = Field(default_factory=list)
+    drawer_trap_detected: bool = False
+
+class MultiPageTelemetry(BaseModel):
+    entry_url: str
+    total_routes_discovered: int = 0
+    crawled_nodes: List[CrawlNode] = Field(default_factory=list)
+    dead_links: List[str] = Field(default_factory=list)
+    console_crashes: List[Dict[str, Any]] = Field(default_factory=list)
+    mobile_traps: List[Dict[str, Any]] = Field(default_factory=list)
+
 class AuditRequest(BaseModel):
-    url: str = "http://localhost:3001"
+    url: str = "http://localhost:8000/store"
 
 class WSMessage(BaseModel):
-    type: str  # "frame" | "log" | "repro_tick" | "bug_found" | "audit_complete" | "error"
+    type: str  # "frame" | "log" | "repro_tick" | "bug_found" | "crawl_node" | "audit_complete" | "error"
     data: Any

@@ -34,16 +34,36 @@
         <p class="text-xs text-slate-400">Campus Stationery • NIT Rourkela, Odisha 769008</p>
       </div>
     </div>
-    <div class="flex items-center space-x-4">
-      <div class="text-xs bg-indigo-950/80 border border-indigo-700/50 px-3 py-1.5 rounded-full text-indigo-300 font-medium flex items-center gap-1.5">
+    <div class="flex items-center space-x-3">
+      <div class="text-xs bg-indigo-950/80 border border-indigo-700/50 px-3 py-1.5 rounded-full text-indigo-300 font-medium hidden md:flex items-center gap-1.5">
         <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
         Delivery to NITR Hostels
       </div>
+      <!-- Internal Nav Links including Broken Deals (CLAW-008) -->
+      <nav class="hidden sm:flex items-center space-x-3 text-xs">
+        <a href="/store/" class="text-slate-300 hover:text-white transition">Home</a>
+        <a href="/store/broken-deals" class="text-slate-400 hover:text-rose-400 transition" id="nav-deals-link">Deals</a>
+        <button id="filter-crafts-btn" onclick="triggerFilterCrash()" class="text-indigo-400 hover:text-indigo-300 transition">Filter Crafts</button>
+      </nav>
+      <!-- Mobile Hamburger Toggle (CLAW-006) -->
+      <button id="mobile-nav-toggle" onclick="openMobileNav()" class="sm:hidden p-1.5 bg-slate-800 text-slate-200 rounded-lg text-sm" aria-label="Open Navigation Menu">
+        ☰
+      </button>
       <a href="#cart-section" class="relative bg-slate-800 hover:bg-slate-700 text-slate-200 px-4 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2">
         🛒 Cart <span id="nav-cart-badge" class="bg-indigo-600 text-white text-xs px-2 py-0.5 rounded-full">0</span>
       </a>
     </div>
   </header>
+
+  <!-- Seeded Bug: Mobile Navigation Drawer Trap (CLAW-006) -->
+  <!-- Intentionally covers full viewport with no close button or dismiss backdrop -->
+  <div id="mobile-nav-drawer" style="display: none;" class="fixed inset-0 z-50 bg-slate-950/95 p-6 flex flex-col justify-center items-center space-y-6">
+    <h2 class="text-lg font-bold text-white">Campus Navigation</h2>
+    <a href="/store/" class="text-base text-slate-300 hover:text-white">Home</a>
+    <a href="/store/broken-deals" class="text-base text-rose-400 hover:text-rose-300">Special Deals</a>
+    <button onclick="triggerFilterCrash()" class="text-base text-indigo-400">Filter Crafts</button>
+    <p class="text-xs text-rose-500 font-mono mt-4">⚠️ UX Trap: No close button provided!</p>
+  </div>
 
   <main class="flex-1 max-w-6xl w-full mx-auto px-4 py-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
     <!-- Products Column (2 cols) -->
@@ -306,6 +326,17 @@
 
       emailErr.classList.add('hidden');
       document.getElementById('order-success-modal').classList.remove('hidden');
+    }
+
+    // Explorer Seeds
+    function openMobileNav() {
+      const drawer = document.getElementById('mobile-nav-drawer');
+      if (drawer) drawer.style.display = 'flex';
+    }
+
+    function triggerFilterCrash() {
+      // Seeded Bug: CLAW-007 Click-triggered JS runtime exception
+      window.inventoryFilterService.apply();
     }
   </script>
 </body>

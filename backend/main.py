@@ -15,11 +15,13 @@ from fastapi.responses import HTMLResponse, PlainTextResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from playwright.async_api import async_playwright, Browser, Page
 
-from models import AuditRequest, BugEvidence, TelemetryPayload
+from models import AuditRequest, BugEvidence, TelemetryPayload, MultiPageTelemetry
 from sensor import setup_cdp_screencast, run_passive_sensor
 from verifier import run_active_verifier
 from reproducer import reproduce_bug_3x
-from analyst import process_audit_findings, generate_github_issue, generate_spec_ts
+from analyst import generate_github_issue, generate_spec_ts
+from crawler import run_multipage_crawler
+from ai_bridge import synthesize_ai_brain_report, get_latest_telemetry_payload
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(name)s: %(message)s")
 logger = logging.getLogger("clawbugger.main")
@@ -48,7 +50,8 @@ active_connections: Set[WebSocket] = set()
 latest_report: Dict[str, Any] = {
     "target_url": "",
     "bugs": [],
-    "telemetry": {}
+    "telemetry": {},
+    "crawled_nodes": []
 }
 
 class ConnectionManager:
@@ -90,11 +93,12 @@ async def launch_browser(p) -> Browser:
 async def execute_full_audit(target_url: str):
     """
     Coordinates the full ClawBugger QA pipeline:
-    1. CDP Screencast Setup
+    1. CDP Screencast Setup (Continuous 30 FPS stream)
     2. Passive & Mobile Layout Sensor (375x667)
     3. Active UI Flow Verification (1280x800)
-    4. 3/3 Parallel Sandbox Reproduction
-    5. Spec & Deliverable Generation
+    4. 3/3 Parallel Sandbox Reproduction (CLAW-001 to CLAW-005)
+    5. Multi-Page Autonomous Crawler (Sequential page hops on SAME page instance)
+    6. AI Brain Bridge Cross-Page Correlation & Deliverables (CLAW-001 to CLAW-008)
     """
     async def emit_log(level: str, msg: str):
         logger.info(f"[{level}] {msg}")
@@ -160,10 +164,18 @@ async def execute_full_audit(target_url: str):
                 await reproduce_bug_3x(browser, target_url, bug, emit_log, tick_callback)
 
         # -------------------------------------------------------------
-        # Phase 4: Telemetry Synthesis & Deliverable Generation
+        # Phase 4: Multi-Page Autonomous Crawler (Same page instance)
         # -------------------------------------------------------------
-        await emit_log("INFO", "=== Phase 4: Generating Self-Healing Playwright .spec.ts & GitHub Issues ===")
-        final_bugs = process_audit_findings(telemetry, active_bugs)
+        async def on_crawl_node(node_dict: dict):
+            await manager.broadcast(node_dict)
+
+        crawl_telemetry = await run_multipage_crawler(page, target_url, emit_log, on_crawl_node)
+
+        # -------------------------------------------------------------
+        # Phase 5: AI Brain Bridge Cross-Page Correlation & Spec Generation
+        # -------------------------------------------------------------
+        await emit_log("INFO", "=== Phase 5: AI Brain Bridge Cross-Page Correlation & Spec Generation ===")
+        final_bugs = synthesize_ai_brain_report(telemetry, active_bugs, crawl_telemetry)
 
         # Close audit browser
         await context.close()
@@ -173,6 +185,7 @@ async def execute_full_audit(target_url: str):
         latest_report["target_url"] = target_url
         latest_report["bugs"] = [b.model_dump() for b in final_bugs]
         latest_report["telemetry"] = telemetry.model_dump()
+        latest_report["crawled_nodes"] = [n.model_dump() for n in crawl_telemetry.crawled_nodes]
 
         # Broadcast each proven bug to UI
         for bug in final_bugs:
@@ -222,6 +235,10 @@ async def trigger_audit(req: AuditRequest):
 async def get_report():
     return latest_report
 
+@app.get("/api/telemetry/latest")
+async def get_latest_telemetry():
+    return get_latest_telemetry_payload()
+
 @app.post("/api/github-issue")
 async def create_github_issue(bug_data: Dict[str, Any]):
     try:
@@ -241,7 +258,6 @@ async def export_spec(bug_id: str):
 
 @app.get("/", response_class=HTMLResponse)
 async def serve_dashboard():
-    # Return split-screen dark-mode frontend dashboard
     dashboard_path = os.path.join(os.path.dirname(__file__), "dashboard.html")
     if os.path.exists(dashboard_path):
         with open(dashboard_path, "r", encoding="utf-8") as f:
@@ -252,4 +268,3 @@ if __name__ == "__main__":
     import uvicorn
     # Use reload=False on Windows to preserve WindowsProactorEventLoop for Playwright subprocesses
     uvicorn.run("main:app", host="127.0.0.1", port=8000, reload=False)
-
